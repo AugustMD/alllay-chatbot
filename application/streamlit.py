@@ -104,6 +104,8 @@ st.markdown("""
 st.markdown('''    ''')
 
 # Store the initial value of widgets in session state
+if "document_type" not in st.session_state:
+    st.session_state.document_type = "🔍 설계 도면 레퍼런스 찾기"
 if "showing_option" not in st.session_state:
     st.session_state.showing_option = "Separately"
 if "search_mode" not in st.session_state:
@@ -120,6 +122,7 @@ with st.sidebar:  # Sidebar 모델 옵션
     menu = st.radio("기능 선택",
             ["🔍 설계 도면 레퍼런스 찾기", "📄 운영 매뉴얼 검색", "⏏️ 문서 업로드"],
             captions=["챗봇이 원하는 조건의 다양한 레퍼런스를 손쉽고 빠르게 찾아줍니다.", "챗봇이 방대한 운영 매뉴얼 문서에서 원하는 정보를 쉽고 빠르게 찾아줍니다.", "원하시는 문서를 직접 업로드해보세요."],
+            key="document_type",
     )
     st.markdown("""
         ---
