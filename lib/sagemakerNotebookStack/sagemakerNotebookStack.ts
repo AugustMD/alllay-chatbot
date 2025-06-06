@@ -36,7 +36,7 @@ export class SagemakerNotebookStack extends cdk.Stack {
     const combinedScriptContent = `${onCreateScriptContent1}\n${onCreateScriptContent2}`;
 
     const cfnNotebookInstanceLifecycleConfig = new sagemaker.CfnNotebookInstanceLifecycleConfig(this, 'AllLayCfnNotebookInstanceLifecycleConfig', /* all optional props */ {
-      notebookInstanceLifecycleConfigName: 'notebookInstanceLifecycleConfig',
+      notebookInstanceLifecycleConfigName: 'allLayNotebookInstanceLifecycleConfig',
       onCreate: [{
           content: cdk.Fn.base64(combinedScriptContent),
         }],
