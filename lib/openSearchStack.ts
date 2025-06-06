@@ -32,7 +32,7 @@ export class OpensearchStack extends Stack {
         generateStringKey: opensearch_user_password,
         excludeCharacters: '"\'',
       },
-      secretName: "opensearch_user_password",
+      secretName: "opensearch_user_password_alllay",
     });
 
     const domain = new opensearch.Domain(this, "Domain", {
