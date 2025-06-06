@@ -30,8 +30,8 @@ const app = new App();
 //   templateFile: 'lib/rerankerStack/RerankerStack.template.json'
 // });
 
-// const customResourceStack = new CustomResourceStack(app, `${STACK_PREFIX}-CustomResourceStack`, envSetting)
-// customResourceStack.addDependency(opensearchStack);
+const customResourceStack = new CustomResourceStack(app, `${STACK_PREFIX}-CustomResourceStack`, envSetting)
+customResourceStack.addDependency(opensearchStack);
 
 // Deploy EC2 stack
 const ec2Stack = new EC2Stack(app, `${STACK_PREFIX}-EC2Stack`, envSetting);
