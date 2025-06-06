@@ -184,7 +184,7 @@
       "EndpointConfigName"
      ]
     },
-    "EndpointName": "reranker",
+    "EndpointName": "reranker-alllay",
     "Tags": [
      {
       "Key": "modelId",
