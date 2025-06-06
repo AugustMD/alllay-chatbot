@@ -68,9 +68,9 @@ export class OpensearchStack extends Stack {
 
     const domain_endpoint_pm = new ssm.StringParameter(
       this,
-      "opensearch_domain_endpoint",
+      "opensearch_alllay_domain_endpoint",
       {
-        parameterName: "opensearch_domain_endpoint",
+        parameterName: "opensearch_alllay_domain_endpoint",
         stringValue: domain.domainEndpoint,
       }
     );
