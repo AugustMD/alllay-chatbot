@@ -13,13 +13,13 @@ export class OpensearchStack extends Stack {
   constructor(scope: Construct, id: string, props?: StackProps) {
     super(scope, id, props);
 
-    const domainName = `rag-hol-mydomain`;
+    const domainName = `rag-hol-alllaydomain`;
 
-    const opensearch_user_id = "raguser";
+    const opensearch_user_id = "alllayuser";
 
-    const user_id_pm = new ssm.StringParameter(this, "opensearch_user_id", {
-      parameterName: "opensearch_user_id",
-      stringValue: "raguser",
+    const user_id_pm = new ssm.StringParameter(this, "opensearch_user_id_alllay", {
+      parameterName: "opensearch_user_id_alllay",
+      stringValue: "alllayuser",
     });
 
     const opensearch_user_password = "pwkey";
