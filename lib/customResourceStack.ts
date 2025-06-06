@@ -15,7 +15,7 @@ export class CustomResourceStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props: CustomResourceStackProps) {
     super(scope, id, props);
 
-    const domainArn = cdk.Fn.importValue('DomainArn');
+    const domainArn = cdk.Fn.importValue('DomainArn-AllLay');
     //const DEFAULT_REGION = this.node.tryGetContext('DEFAULT_REGION');
     const DEFAULT_REGION = props.env.region;
 
