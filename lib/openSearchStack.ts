@@ -90,9 +90,9 @@ export class OpensearchStack extends Stack {
       description: "secrets manager user pw",
     });
 
-    new cdk.CfnOutput(this, 'DomainArn', {
+    new cdk.CfnOutput(this, 'DomainArnAllLay', {
       value: domain.domainArn,
-      exportName: 'DomainArn'
+      exportName: 'DomainArn-AllLay'
     });
 
   }
