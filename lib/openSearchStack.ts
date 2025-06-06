@@ -13,7 +13,7 @@ export class OpensearchStack extends Stack {
   constructor(scope: Construct, id: string, props?: StackProps) {
     super(scope, id, props);
 
-    const domainName = `alllay-domain`;
+    const domainName = `alllay-os-domain`;
 
     const opensearch_user_id = "alllayuser";
 
