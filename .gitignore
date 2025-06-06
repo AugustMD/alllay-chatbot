@@ -1,0 +1,17 @@
+/node_modules
+/cdk.out
+cdk.context.json
+
+# DS_store
+.DS_Store
+**/.DS_Store
+
+.ipynb_checkpoints
+*/.ipynb_checkpoints/*
+
+# 가상환경 디렉토리 무시
+myenv/
+venv/
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
