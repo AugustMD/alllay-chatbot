@@ -141,3 +141,75 @@ def get_retriever(streaming_callback, parent, reranker, hyde, ragfusion, alpha, 
         k=7,
         verbose=True,
     )
+
+def hybrid_search(streaming_callback, query: str):
+    index_name = "alllay_index"
+    opensearch_domain_endpoint = pm.get_params(
+        key="opensearch_domain_endpoint",
+        enc=False
+    )
+
+
+    secrets_manager = boto3.client('secretsmanager')
+
+    response = secrets_manager.get_secret_value(
+        SecretId='opensearch_user_password'
+    )
+
+    secrets_string = response.get('SecretString')
+    secrets_dict = eval(secrets_string)
+
+    opensearch_user_id = secrets_dict['es.net.http.auth.user']
+    opensearch_user_password = secrets_dict['pwkey']
+
+    opensearch_domain_endpoint = opensearch_domain_endpoint
+    rag_user_name = opensearch_user_id
+    rag_user_password = opensearch_user_password
+
+    http_auth = (rag_user_name, rag_user_password) # Master username, Master password
+
+    aws_region = os.environ.get("AWS_DEFAULT_REGION", None)
+
+    os_client = opensearch_utils.create_aws_opensearch_client(
+        aws_region,
+        opensearch_domain_endpoint,
+        http_auth
+    )
+    opensearch_hybrid_retriever = OpenSearchHybridSearchRetriever(
+        os_client=os_client,
+        index_name=index_name,
+        llm_text=get_llm(streaming_callback), # llm for query augmentation in both rag_fusion and HyDE
+        llm_emb=get_embedding_model(), # Used in semantic search based on opensearch
+
+        # hybird-search debugger
+        #hybrid_search_debugger = "semantic", #[semantic, lexical, None]
+
+        # option for lexical
+        minimum_should_match=0,
+        filter=[],
+
+        # option for search
+        fusion_algorithm="RRF", # ["RRF", "simple_weighted"], rank fusion 방식 정의
+        ensemble_weights=[.51, .49], # [for semantic, for lexical], Semantic, Lexical search 결과에 대한 최종 반영 비율 정의
+        reranker=False, # enable reranker with reranker model
+        #reranker_endpoint_name=endpoint_name, # endpoint name for reranking model
+        parent_document=True, # enable parent document
+
+        # option for complex pdf consisting of text, table and image
+        complex_doc=True,
+
+        # option for async search
+        async_mode=True,
+
+        # option for output
+        k=7, # 최종 Document 수 정의
+        verbose=False,
+    )
+    search_hybrid_result, tables, images = opensearch_hybrid_retriever.get_relevant_documents(query)
+    result = ""
+    for idx, context in enumerate(search_hybrid_result):
+        result += f"Document {idx+1}:"
+        result += f"Page Content: {context.page_content}"
+        result += f"Metadata: {context.metadata}"
+        result += "="*50
+    return result
