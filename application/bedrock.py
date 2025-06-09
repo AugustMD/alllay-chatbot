@@ -14,7 +14,7 @@ secrets_manager = boto3.client('secretsmanager', region_name=region)
 
 def invoke_agent_direct(query):
     agent_id = os.environ.get("BEDROCK_AGENT_ID")
-    alias_id = os.environ.get("BEDROCK_AGENT_ALIAS_ID", "DRAFT")
+    alias_id = os.environ.get("BEDROCK_AGENT_ALIAS_ID")
     session_id = os.environ.get("SESSION_ID", "default-session")
     region = os.environ.get("AWS_DEFAULT_REGION")
 
