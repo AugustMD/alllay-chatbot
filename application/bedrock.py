@@ -77,7 +77,7 @@ def get_llm(streaming_callback):
         region=os.environ.get("AWS_DEFAULT_REGION", None),
     )
     llm = ChatBedrock(
-        model_id=bedrock_info.get_model_id(model_name="Claude-V3-3.5-Sonne"),
+        model_id=bedrock_info.get_model_id(model_name="Claude-V3.5-Sonnet"),
         client=boto3_bedrock,
         model_kwargs={
             "max_tokens": 1024,
