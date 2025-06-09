@@ -6,7 +6,6 @@ from langchain.embeddings import BedrockEmbeddings
 from langchain_aws import ChatBedrock
 from utils import bedrock
 from utils.bedrock import bedrock_info
-from langchain_aws.agent_rag import BedrockAgent
 
 region = boto3.Session().region_name
 pm = parameter_store(region)
