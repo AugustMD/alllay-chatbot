@@ -13,39 +13,38 @@ pm = parameter_store(region)
 secrets_manager = boto3.client('secretsmanager', region_name=region)
 
 
-def get_agent():
+def invoke_agent_direct(query):
     agent_id = os.environ.get("BEDROCK_AGENT_ID")
     alias_id = os.environ.get("BEDROCK_AGENT_ALIAS_ID", "DRAFT")
+    session_id = os.environ.get("SESSION_ID", "default-session")
     region = os.environ.get("AWS_DEFAULT_REGION")
-    assume_role = os.environ.get("BEDROCK_ASSUME_ROLE")
 
-    boto3_bedrock = bedrock.get_bedrock_client(
-        assumed_role=assume_role,
-        endpoint_url=os.environ.get("BEDROCK_ENDPOINT_URL", None),
-        region=region,
+    client = boto3.client("bedrock-agent-runtime", region_name=region)
+    response = client.invoke_agent(
+        agentId=agent_id,
+        agentAliasId=alias_id,
+        sessionId=session_id,
+        input={"text": query}
     )
 
-    return BedrockAgent(
-        client=boto3_bedrock,
-        agent_id=agent_id,
-        agent_alias_id=alias_id,
-        region=region,
-    )
+    output = b""
+    for event in response["completion"]:
+        chunk = event.get("chunk", {}).get("bytes")
+        if chunk:
+            output += chunk
+    return output.decode("utf-8"), []
 
 
 def invoke(query, streaming_callback, parent, reranker, hyde, ragfusion, alpha, document_type="Default"):
     use_agent = os.environ.get("USE_BEDROCK_AGENT", "false").lower() == "true"
 
     if use_agent:
-        agent = get_agent()
-        print("Using Bedrock Agent...")
-        response = agent.invoke(input=query)
-        return response["output"] if isinstance(response, dict) and "output" in response else response, []
+        print("Using Bedrock Agent directly...")
+        return invoke_agent_direct(query)
 
     # 기존 방식 유지
     llm_text = get_llm(streaming_callback)
-    opensearch_hybrid_retriever = get_retriever(streaming_callback, parent, reranker, hyde, ragfusion, alpha,
-                                                document_type)
+    opensearch_hybrid_retriever = get_retriever(streaming_callback, parent, reranker, hyde, ragfusion, alpha, document_type)
     system_prompt = prompt_repo.get_system_prompt()
 
     qa = qa_chain(
