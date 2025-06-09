@@ -27,13 +27,16 @@ def invoke_agent_direct(query):
         inputText=query
     )
 
-    output = b""
-    for event in response.get("completion", []):
-        chunk = event.get("chunk", {}).get("bytes")
-        if chunk:
-            output += chunk
-
-    return output.decode("utf-8"), []
+    # Check if streaming response is returned
+    if "completion" in response:
+        output = b""
+        for event in response["completion"]:
+            chunk = event.get("chunk", {}).get("bytes")
+            if chunk:
+                output += chunk
+        return output.decode("utf-8"), []
+    else:
+        return response.get("outputText", ""), []
 
 
 # def invoke(query, streaming_callback, parent, reranker, hyde, ragfusion, alpha, document_type="Default"):
