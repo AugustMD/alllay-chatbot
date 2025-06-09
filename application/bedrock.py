@@ -34,39 +34,43 @@ def invoke_agent_direct(query):
     return output.decode("utf-8"), []
 
 
-def invoke(query, streaming_callback, parent, reranker, hyde, ragfusion, alpha, document_type="Default"):
-    use_agent = os.environ.get("USE_BEDROCK_AGENT", "false").lower() == "true"
+# def invoke(query, streaming_callback, parent, reranker, hyde, ragfusion, alpha, document_type="Default"):
+#     use_agent = os.environ.get("USE_BEDROCK_AGENT", "false").lower() == "true"
+#
+#     if use_agent:
+#         print("Using Bedrock Agent directly...")
+#         return invoke_agent_direct(query)
+#
+#     # 기존 방식 유지
+#     llm_text = get_llm(streaming_callback)
+#     opensearch_hybrid_retriever = get_retriever(streaming_callback, parent, reranker, hyde, ragfusion, alpha, document_type)
+#     system_prompt = prompt_repo.get_system_prompt()
+#
+#     qa = qa_chain(
+#         llm_text=llm_text,
+#         retriever=opensearch_hybrid_retriever,
+#         system_prompt=system_prompt,
+#         return_context=False,
+#         verbose=False
+#     )
+#
+#     response, pretty_contexts, similar_docs, augmentation = qa.invoke(query=query, complex_doc=True)
+#
+#     if hyde or ragfusion:
+#         return response, pretty_contexts, augmentation
+#
+#     if not hyde or ragfusion:
+#         if alpha == 0.0:
+#             pretty_contexts[0].clear()
+#         elif alpha == 1.0:
+#             pretty_contexts[1].clear()
+#
+#     return response, pretty_contexts
 
-    if use_agent:
-        print("Using Bedrock Agent directly...")
-        return invoke_agent_direct(query)
-
-    # 기존 방식 유지
-    llm_text = get_llm(streaming_callback)
-    opensearch_hybrid_retriever = get_retriever(streaming_callback, parent, reranker, hyde, ragfusion, alpha, document_type)
-    system_prompt = prompt_repo.get_system_prompt()
-
-    qa = qa_chain(
-        llm_text=llm_text,
-        retriever=opensearch_hybrid_retriever,
-        system_prompt=system_prompt,
-        return_context=False,
-        verbose=False
-    )
-
-    response, pretty_contexts, similar_docs, augmentation = qa.invoke(query=query, complex_doc=True)
-
-    if hyde or ragfusion:
-        return response, pretty_contexts, augmentation
-
-    if not hyde or ragfusion:
-        if alpha == 0.0:
-            pretty_contexts[0].clear()
-        elif alpha == 1.0:
-            pretty_contexts[1].clear()
-
-    return response, pretty_contexts
-
+def invoke(query, streaming_callback=None, parent=None, reranker=None, hyde=None, ragfusion=None, alpha=0.5, document_type="Default"):
+    # 사용자 정의 Bedrock Agent만 사용하여 호출
+    response, _ = invoke_agent_direct(query)
+    return response, []
 
 def get_llm(streaming_callback):
     boto3_bedrock = bedrock.get_bedrock_client(
