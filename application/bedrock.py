@@ -19,18 +19,20 @@ def invoke_agent_direct(query):
     region = os.environ.get("AWS_DEFAULT_REGION")
 
     client = boto3.client("bedrock-agent-runtime", region_name=region)
+
     response = client.invoke_agent(
         agentId=agent_id,
         agentAliasId=alias_id,
         sessionId=session_id,
-        input={"text": query}
+        inputText=query
     )
 
     output = b""
-    for event in response["completion"]:
+    for event in response.get("completion", []):
         chunk = event.get("chunk", {}).get("bytes")
         if chunk:
             output += chunk
+
     return output.decode("utf-8"), []
 
 
