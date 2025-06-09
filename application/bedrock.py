@@ -13,18 +13,34 @@ secrets_manager = boto3.client('secretsmanager', region_name=region)
 
 
 def invoke_agent_direct(query):
-    agent_id = os.environ.get("BEDROCK_AGENT_ID")
-    alias_id = os.environ.get("BEDROCK_AGENT_ALIAS_ID", "DRAFT")
+    agent_id = os.environ.get("BEDROCK_AGENT_ID", "WZPRJN27KK")
+    alias_id = os.environ.get("BEDROCK_AGENT_ALIAS_ID", "QLJDG1RGPT")
     session_id = os.environ.get("SESSION_ID", "default-session")
     region = os.environ.get("AWS_DEFAULT_REGION")
 
     client = boto3.client("bedrock-agent-runtime", region_name=region)
 
+    # 사용자 포맷에 맞게 request_body 생성
+    request_body = {
+        "requestBody": {
+            "content": {
+                "application/json": {
+                    "properties": [
+                        {
+                            "name": "query",
+                            "value": query
+                        }
+                    ]
+                }
+            }
+        }
+    }
+
     response = client.invoke_agent(
         agentId=agent_id,
         agentAliasId=alias_id,
         sessionId=session_id,
-        inputText=query
+        inputText=json.dumps(request_body)
     )
 
     # Check if streaming response is returned
