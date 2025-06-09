@@ -1,4 +1,63 @@
-import os, sys, boto3
+import os, sys, boto3, json
+from utils.rag_summit import prompt_repo, OpenSearchHybridSearchRetriever, prompt_repo, qa_chain
+from utils.opensearch_summit import opensearch_utils
+from utils.ssm import parameter_store
+from langchain.embeddings import BedrockEmbeddings
+from langchain_aws import ChatBedrock
+from utils import bedrock
+from utils.bedrock import bedrock_info
+
+region = boto3.Session().region_name
+pm = parameter_store(region)
+secrets_manager = boto3.client('secretsmanager', region_name=region)
+
+
+def invoke_agent_direct(query):
+    agent_id = os.environ.get("BEDROCK_AGENT_ID", "WZPRJN27KK")
+    alias_id = os.environ.get("BEDROCK_AGENT_ALIAS_ID", "QLJDG1RGPT")
+    session_id = os.environ.get("SESSION_ID", "default-session")
+    region = os.environ.get("AWS_DEFAULT_REGION")
+
+    client = boto3.client("bedrock-agent-runtime", region_name=region)
+
+    # 사용자 포맷에 맞게 request_body 생성
+    request_body = {
+        "requestBody": {
+            "content": {
+                "application/json": {
+                    "properties": [
+                        {
+                            "name": "query",
+                            "value": query
+                        }
+                    ]
+                }
+            }
+        }
+    }
+
+    response = client.invoke_agent(
+        agentId=agent_id,
+        agentAliasId=alias_id,
+        sessionId=session_id,
+        inputText=json.dumps(request_body)
+    )
+
+    # Check if streaming response is returned
+    if "completion" in response:
+        output = b""
+        for event in response["completion"]:
+            chunk = event.get("chunk", {}).get("bytes")
+            if chunk:
+                output += chunk
+        return output.decode("utf-8"), []
+    else:
+        return response.get("outputText", ""), []
+
+def invoke(query, streaming_callback=None, parent=None, reranker=None, hyde=None, ragfusion=None, alpha=0.5, document_type="Default"):
+    # 사용자 정의 Bedrock Agent만 사용하여 호출
+    response, _ = invoke_agent_direct(query)
+    return response, []
 from utils.rag_summit import prompt_repo, OpenSearchHybridSearchRetriever, prompt_repo, qa_chain
 from utils.opensearch_summit import opensearch_utils
 from utils.ssm import parameter_store
