@@ -32,6 +32,9 @@ After=network.target
 [Service]
 User=ubuntu
 Environment='AWS_DEFAULT_REGION=us-west-2'
+Environment='BEDROCK_AGENT_ID=WZPRJN27KK'
+Environment='BEDROCK_AGENT_ALIAS_ID=DRAFT'
+Environment='BEDROCK_ASSUME_ROLE=arn:aws:iam::692744833466:role/service-role/AmazonBedrockExecutionRoleForAgents_VE78DZLICWP'
 WorkingDirectory=/home/ubuntu/alllay-chatbot/application
 ExecStartPre=/bin/bash -c 'sudo iptables -t nat -A PREROUTING -p tcp --dport 80 -j REDIRECT --to-port 8501'
 ExecStart=/bin/bash -c 'source /home/ubuntu/my_env/bin/activate && streamlit run streamlit.py --server.port 8501'

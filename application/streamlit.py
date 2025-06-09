@@ -233,11 +233,11 @@ if st.session_state.showing_option == "Separately":
         st.chat_message("user").write(query)
 
         # Streamlit callback handler로 bedrock streaming 받아오는 컨테이너 설정
-        st_cb = DummyCallback()
-        # st_cb = StreamlitCallbackHandler(
-        #     st.chat_message("assistant"),
-        #     collapse_completed_thoughts=True
-        # )
+        # st_cb = DummyCallback()
+        st_cb = StreamlitCallbackHandler(
+            st.chat_message("assistant"),
+            collapse_completed_thoughts=True
+        )
         # bedrock.py의 invoke 함수 사용
         response = glib.invoke(
             query=query,
@@ -326,11 +326,11 @@ else:
 
         with col1:
             # Streamlit callback handler로 bedrock streaming 받아오는 컨테이너 설정
-            st_cb = DummyCallback()
-            # st_cb = StreamlitCallbackHandler(
-            #     st.chat_message("assistant"),
-            #     collapse_completed_thoughts=True
-            # )
+            # st_cb = DummyCallback()
+            st_cb = StreamlitCallbackHandler(
+                st.chat_message("assistant"),
+                collapse_completed_thoughts=True
+            )
             answer1 = glib.invoke(
                 query=query,
                 streaming_callback=st_cb,
@@ -344,11 +344,11 @@ else:
             st.write(answer1)
             st_cb._complete_current_thought()  # Thinking을 complete로 수동으로 바꾸어 줌
         with col2:
-            st_cb = DummyCallback()
-            # st_cb = StreamlitCallbackHandler(
-            #     st.chat_message("assistant"),
-            #     collapse_completed_thoughts=True
-            # )
+            # st_cb = DummyCallback()
+            st_cb = StreamlitCallbackHandler(
+                st.chat_message("assistant"),
+                collapse_completed_thoughts=True
+            )
             answer2 = glib.invoke(
                 query=query,
                 streaming_callback=st_cb,
@@ -362,11 +362,11 @@ else:
             st.write(answer2)
             st_cb._complete_current_thought()
         with col3:
-            st_cb = DummyCallback()
-            # st_cb = StreamlitCallbackHandler(
-            #     st.chat_message("assistant"),
-            #     collapse_completed_thoughts=True
-            # )
+            # st_cb = DummyCallback()
+            st_cb = StreamlitCallbackHandler(
+                st.chat_message("assistant"),
+                collapse_completed_thoughts=True
+            )
             answer3 = glib.invoke(
                 query=query,
                 streaming_callback=st_cb,
@@ -380,11 +380,11 @@ else:
             st.write(answer3)
             st_cb._complete_current_thought()
         with col4:
-            st_cb = DummyCallback()
-            # st_cb = StreamlitCallbackHandler(
-            #     st.chat_message("assistant"),
-            #     collapse_completed_thoughts=True
-            # )
+            # st_cb = DummyCallback()
+            st_cb = StreamlitCallbackHandler(
+                st.chat_message("assistant"),
+                collapse_completed_thoughts=True
+            )
             answer4 = glib.invoke(
                 query=query,
                 streaming_callback=st_cb,
