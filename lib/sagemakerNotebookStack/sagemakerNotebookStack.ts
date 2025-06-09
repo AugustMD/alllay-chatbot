@@ -53,7 +53,7 @@ export class SagemakerNotebookStack extends cdk.Stack {
       // the properties below are optional
       //acceleratorTypes: ['acceleratorTypes'],
       //additionalCodeRepositories: ['additionalCodeRepositories'],
-      defaultCodeRepository: 'https://github.com/Jiyu-Kim/advanced-rag-workshop.git',
+      defaultCodeRepository: 'https://github.com/feuziq47/alllay_sage.git',
       directInternetAccess: 'Enabled',
       //instanceMetadataServiceConfiguration: {
       //  minimumInstanceMetadataServiceVersion: 'minimumInstanceMetadataServiceVersion',
