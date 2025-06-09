@@ -47,5 +47,6 @@ sudo amazon-linux-extras install libreoffice -y
 # Uninstall nltk 3.8.2 and install 3.8.1
 /home/ec2-user/anaconda3/envs/python3/bin/python -m pip uninstall -y nltk
 /home/ec2-user/anaconda3/envs/python3/bin/python -m pip install -U nltk==3.8.1
+/home/ec2-user/anaconda3/envs/python3/bin/python -m pip install -U PyPDF2
 
 EOF
