@@ -81,7 +81,7 @@ def invoke_agent_direct(query):
     #         return {"error": f"JSON decode failed: {str(e)}"}, []
 
     # 4️⃣ fallback
-    return {"message": response}, []
+    return {"message": json.dumps(response)}, []
 
 def invoke(query, streaming_callback=None, parent=None, reranker=None, hyde=None, ragfusion=None, alpha=0.5, document_type="Default"):
     # 사용자 정의 Bedrock Agent만 사용하여 호출
