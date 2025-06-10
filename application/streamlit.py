@@ -252,11 +252,11 @@ if st.session_state.showing_option == "Separately":
         response = glib.invoke(
             query=query,
             streaming_callback=st_cb,
-            parent=parent,
-            reranker=reranker,
-            hyde=hyde,
-            ragfusion=ragfusion,
-            alpha=alpha,
+            parent=False,
+            reranker=False,
+            hyde=False,
+            ragfusion=False,
+            alpha=False,
             document_type=st.session_state.document_type
         )
         # response 로 메세지, 링크, 레퍼런스(source_documents) 받아오게 설정된 것을 변수로 저장
