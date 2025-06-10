@@ -44,7 +44,7 @@ def show_document_info_label():
             st.markdown(
                 '''&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;👉 터치스크린의 조작법에 대해 알려줘. 라고 질문해보세요.''')
             st.markdown(
-                '''&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;📝 현재 기본 문서인 [**INC14 FC Conveyor & CB Sorter & Spiral 설비 유지보수 Manual**]를 활용하고 있습니다.''')
+                '''&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;📝 현재 기본 매뉴얼인 [**INC14 FC Conveyor & CB Sorter & Spiral 설비 유지보수 Manual**]를 활용하고 있습니다.''')
             st.session_state.query_disabled = False  # 상태 저장용
         elif menu == "📄 운영 매뉴얼 검색":
             st.markdown(
