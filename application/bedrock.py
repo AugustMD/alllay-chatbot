@@ -52,10 +52,6 @@ def invoke_agent_direct(query):
         inputText=query
     )
 
-    def extract_response_text(raw_text):
-        match = re.search(r"<response>(.*?)</response>", raw_text, re.DOTALL)
-        return match.group(1).strip() if match else raw_text.strip()
-
     # 1️⃣ completion (스트리밍 응답)
     if "completion" in response:
         output = b""
@@ -63,13 +59,11 @@ def invoke_agent_direct(query):
             chunk = event.get("chunk", {}).get("bytes")
             if chunk:
                 output += chunk
-        raw_text = output.decode("utf-8")
-        return {"message": extract_response_text(raw_text)}, []
+        return {"message": output.decode("utf-8")}, []
 
     # 2️⃣ outputText (단일 텍스트 응답)
     if "outputText" in response:
-        raw_text = response["outputText"]
-        return {"message": extract_response_text(raw_text)}, []
+        return {"message": response["outputText"]}, []
 
     # 3️⃣ body (Lambda 호출 결과)
     if "body" in response:
@@ -87,7 +81,7 @@ def invoke_agent_direct(query):
             return {"error": f"JSON decode failed: {str(e)}"}, []
 
     # 4️⃣ fallback
-    return {"error": "No valid response format found"}, []
+    return {"error": response}, []
 
 def invoke(query, streaming_callback=None, parent=None, reranker=None, hyde=None, ragfusion=None, alpha=0.5, document_type="Default"):
     # 사용자 정의 Bedrock Agent만 사용하여 호출
