@@ -255,7 +255,7 @@ if st.session_state.showing_option == "Separately":
         hyde = False
         ragfusion = False
         # bedrock.py의 invoke 함수 사용
-        response = glib.invoke(
+        answer, contexts = glib.invoke(
             query=query,
             streaming_callback=st_cb,
             parent=parent,
@@ -266,34 +266,31 @@ if st.session_state.showing_option == "Separately":
             document_type=st.session_state.document_type
         )
 
-        # response 로 메세지, 링크, 레퍼런스(source_documents) 받아오게 설정된 것을 변수로 저장
-        answer = response[0]
-        contexts = response[1]
-        if hyde or ragfusion:
-            mid_answer = response[2] if len(response) > 2 else None
+        # if hyde or ragfusion:
+        #     mid_answer = response[2] if len(response) > 2 else None
 
         # UI 출력
         st.chat_message("assistant").write(answer)
 
-        if hyde:
-            with st.chat_message("assistant"):
-                with st.expander("HyDE 중간 생성 답변 ⬇️"):
-                    mid_answer
-        if ragfusion:
-            with st.chat_message("assistant"):
-                with st.expander("RAG-Fusion 중간 생성 쿼리 ⬇️"):
-                    mid_answer
-        with st.chat_message("assistant"):
-            with st.expander("정확도 별 컨텍스트 보기 ⬇️"):
-                show_context_with_tab(contexts)
+        # if hyde:
+        #     with st.chat_message("assistant"):
+        #         with st.expander("HyDE 중간 생성 답변 ⬇️"):
+        #             mid_answer
+        # if ragfusion:
+        #     with st.chat_message("assistant"):
+        #         with st.expander("RAG-Fusion 중간 생성 쿼리 ⬇️"):
+        #             mid_answer
+        # with st.chat_message("assistant"):
+        #     with st.expander("정확도 별 컨텍스트 보기 ⬇️"):
+        #         show_context_with_tab(contexts)
 
         # Session 메세지 저장
         st.session_state.messages.append({"role": "assistant", "content": answer})
 
-        if hyde or ragfusion:
-            st.session_state.messages.append({"role": "hyde_or_fusion", "content": mid_answer})
-
-        st.session_state.messages.append({"role": "assistant_context", "content": contexts})
+        # if hyde or ragfusion:
+        #     st.session_state.messages.append({"role": "hyde_or_fusion", "content": mid_answer})
+        #
+        # st.session_state.messages.append({"role": "assistant_context", "content": contexts})
         # Thinking을 complete로 수동으로 바꾸어 줌
         st_cb._complete_current_thought()
 

@@ -14,7 +14,7 @@ secrets_manager = boto3.client('secretsmanager', region_name=region)
 
 def invoke_agent_direct(query):
     agent_id = os.environ.get("BEDROCK_AGENT_ID", "WZPRJN27KK")
-    alias_id = os.environ.get("BEDROCK_AGENT_ALIAS_ID", "QLJDG1RGPT")
+    alias_id = os.environ.get("BEDROCK_AGENT_ALIAS_ID", "ISTRTU4ISY")
     session_id = os.environ.get("SESSION_ID", "default-session")
     region = os.environ.get("AWS_DEFAULT_REGION")
 
@@ -52,27 +52,8 @@ def invoke_agent_direct(query):
         inputText=query
     )
 
-    # 응답 처리
-    if "body" in response:
-        try:
-            body_dict = json.loads(response["body"])  # JSON 디코딩
-            if isinstance(body_dict, dict):
-                # 최종 결과만 반환 (statusCode는 무시하거나 필요시 로깅)
-                expected_count = body_dict.get("expected_count")
-                results = body_dict.get("results", [])
-                return {
-                    "expected_count": expected_count,
-                    "results": results
-                }, []
-            else:
-                return {"error": "Unexpected body format"}, []
-        except Exception as e:
-            return {"error": f"JSON decode error: {str(e)}"}, []
-
-    elif "outputText" in response:
-        return {"message": response["outputText"]}, []
-
-    elif "completion" in response:
+    # 1️⃣ completion (스트리밍 응답)
+    if "completion" in response:
         output = b""
         for event in response["completion"]:
             chunk = event.get("chunk", {}).get("bytes")
@@ -80,12 +61,44 @@ def invoke_agent_direct(query):
                 output += chunk
         return {"message": output.decode("utf-8")}, []
 
-    return {"error": "No valid response from agent"}, []
+    # 2️⃣ outputText (단일 텍스트 응답)
+    if "outputText" in response:
+        return {"message": response["outputText"]}, []
+
+    # 3️⃣ body (Lambda 호출 결과)
+    if "body" in response:
+        try:
+            outer = json.loads(response["body"])
+            if isinstance(outer, dict) and "body" in outer:
+                inner = json.loads(outer["body"])
+                return {
+                    "expected_count": inner.get("expected_count"),
+                    "results": inner.get("results", [])
+                }, []
+            else:
+                return {"error": "Invalid outer body structure"}, []
+        except Exception as e:
+            return {"error": f"JSON decode failed: {str(e)}"}, []
+
+    # 4️⃣ fallback
+    return {"error": "No valid response format found"}, []
 
 def invoke(query, streaming_callback=None, parent=None, reranker=None, hyde=None, ragfusion=None, alpha=0.5, document_type="Default"):
     # 사용자 정의 Bedrock Agent만 사용하여 호출
-    response, _ = invoke_agent_direct(query)
-    return response, []
+    # Lambda에서 온 structured response
+    if "results" in response:
+        return response["results"], []
+
+    # Bedrock의 일반 응답
+    elif "message" in response:
+        return response["message"], []
+
+    # 오류 발생 시
+    elif "error" in response:
+        return response["error"], []
+
+    # fallback
+    return "[Unknown response format]", []
 
 # def invoke(query, streaming_callback, parent, reranker, hyde, ragfusion, alpha, document_type="Default"):
 #     use_agent = os.environ.get("USE_BEDROCK_AGENT", "false").lower() == "true"
