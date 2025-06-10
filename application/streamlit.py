@@ -184,7 +184,6 @@ if st.session_state.showing_option == "Separately":
             st.chat_message("assistant"),
             collapse_completed_thoughts=True
         )
-        st_cb = None
         parent = False
         reranker = False
         hyde = False
