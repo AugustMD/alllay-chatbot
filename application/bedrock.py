@@ -67,17 +67,7 @@ def invoke_agent_direct(query):
 
     # 3️⃣ body (Lambda 호출 결과)
     if "body" in response:
-        try:
-            outer = json.loads(response["body"])
-            if isinstance(outer, dict) and "body" in outer:
-                inner = json.loads(outer["body"])
-                return {
-                    "messages": response["body"]
-                }, []
-            else:
-                return {"error": "Invalid outer body structure"}, []
-        except Exception as e:
-            return {"error": f"JSON decode failed: {str(e)}"}, []
+        return {"message": response["body"]}, []
 
     # 4️⃣ fallback
     return {"error": response}, []
