@@ -55,11 +55,12 @@ def invoke_agent_direct(query):
     # 1️⃣ completion (스트리밍 응답)
     if "completion" in response:
         output = b""
-        for event in response["completion"]:
-            chunk = event.get("chunk", {}).get("bytes")
-            if chunk:
-                output += chunk
-        return {"message": output.decode("utf-8")}, []
+        # for event in response["completion"]:
+        #     chunk = event.get("chunk", {}).get("bytes")
+        #     if chunk:
+        #         output += chunk
+        # return {"message": output.decode("utf-8")}, []
+        return {"message": response}, []
 
     # 2️⃣ outputText (단일 텍스트 응답)
     if "outputText" in response:
