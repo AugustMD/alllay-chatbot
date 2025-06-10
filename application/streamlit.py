@@ -42,7 +42,9 @@ def show_document_info_label():
             st.markdown("""""")
             st.markdown('''**📄 원하는 매뉴얼이 있나요?**''')
             st.markdown(
-                '''&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;👉 현재 기본 문서인 [**쿠팡 물류센터 운영 매뉴얼**](https://d14ojpq4k4igb1.cloudfront.net/school_edu_guide.pdf)를 활용하고 있습니다.''')
+                '''&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;👉 터치스크린의 조작법에 대해 알려줘. 라고 질문해보세요.''')
+            st.markdown(
+                '''&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;📝 현재 기본 문서인 [**INC14 FC Conveyor & CB Sorter & Spiral 설비 유지보수 Manual**]를 활용하고 있습니다.''')
             st.session_state.query_disabled = False  # 상태 저장용
         elif menu == "📄 운영 매뉴얼 검색":
             st.markdown(
@@ -248,17 +250,22 @@ if st.session_state.showing_option == "Separately":
             st.chat_message("assistant"),
             collapse_completed_thoughts=True
         )
+        parent = False
+        reranker = False
+        hyde = False
+        ragfusion = False
         # bedrock.py의 invoke 함수 사용
         response = glib.invoke(
             query=query,
             streaming_callback=st_cb,
-            parent=False,
-            reranker=False,
-            hyde=False,
-            ragfusion=False,
+            parent=parent,
+            reranker=reranker,
+            hyde=hyde,
+            ragfusion=ragfusion,
             alpha=False,
             document_type=st.session_state.document_type
         )
+
         # response 로 메세지, 링크, 레퍼런스(source_documents) 받아오게 설정된 것을 변수로 저장
         answer = response[0]
         contexts = response[1]
