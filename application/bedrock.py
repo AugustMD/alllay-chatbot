@@ -52,28 +52,35 @@ def invoke_agent_direct(query):
         inputText=query
     )
 
-    # 1️⃣ Stream 응답 처리
-    if "completion" in response:
+    # 응답 처리
+    if "body" in response:
+        try:
+            body_dict = json.loads(response["body"])  # JSON 디코딩
+            if isinstance(body_dict, dict):
+                # 최종 결과만 반환 (statusCode는 무시하거나 필요시 로깅)
+                expected_count = body_dict.get("expected_count")
+                results = body_dict.get("results", [])
+                return {
+                    "expected_count": expected_count,
+                    "results": results
+                }, []
+            else:
+                return {"error": "Unexpected body format"}, []
+        except Exception as e:
+            return {"error": f"JSON decode error: {str(e)}"}, []
+
+    elif "outputText" in response:
+        return {"message": response["outputText"]}, []
+
+    elif "completion" in response:
         output = b""
         for event in response["completion"]:
             chunk = event.get("chunk", {}).get("bytes")
             if chunk:
                 output += chunk
-        return output.decode("utf-8"), []
+        return {"message": output.decode("utf-8")}, []
 
-    # 2️⃣ 일반 응답 (outputText 또는 body) 처리
-    elif "outputText" in response:
-        return response["outputText"], []
-
-    elif "body" in response:
-        try:
-            body_dict = json.loads(response["body"])  # JSON 문자열 디코딩
-            return json.dumps(body_dict, ensure_ascii=False, indent=2), []
-        except Exception as e:
-            return response["body"], []
-
-    # 3️⃣ 응답이 없을 경우
-    return "[ERROR] No valid response from agent", []
+    return {"error": "No valid response from agent"}, []
 
 def invoke(query, streaming_callback=None, parent=None, reranker=None, hyde=None, ragfusion=None, alpha=0.5, document_type="Default"):
     # 사용자 정의 Bedrock Agent만 사용하여 호출

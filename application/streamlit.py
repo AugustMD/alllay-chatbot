@@ -38,7 +38,7 @@ def show_document_info_label():
         if menu == "🤖 Chatbot":
             st.markdown('''**💁‍♀️ 원하는 도면이 있나요?**''')
             st.markdown(
-                '''&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;👉 스파이럴이 10개 있는 레이아웃 알려줘. 라고 질문해보세요.''')
+                '''&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;👉 스파이럴 슈트가 10개 있는 레이아웃 알려줘. 라고 질문해보세요.''')
             st.markdown("""""")
             st.markdown('''**💁‍️ 원하는 매뉴얼이 있나요?**''')
             st.markdown(
@@ -263,7 +263,7 @@ if st.session_state.showing_option == "Separately":
         answer = response[0]
         contexts = response[1]
         if hyde or ragfusion:
-            mid_answer = response[2]
+            mid_answer = response[2] if len(response) > 2 else None
 
         # UI 출력
         st.chat_message("assistant").write(answer)
