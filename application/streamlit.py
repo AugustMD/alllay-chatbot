@@ -2,7 +2,7 @@ import base64
 import streamlit as st  # 모든 streamlit 명령은 "st" alias로 사용할 수 있습니다.
 import bedrock as glib  # 로컬 라이브러리 스크립트에 대한 참조
 import time
-from langchain.callbacks import StreamlitCallbackHandler
+# from langchain.callbacks import StreamlitCallbackHandler
 
 ##################### LocalTest ########################
 class DummyCallback:
@@ -180,10 +180,11 @@ if st.session_state.showing_option == "Separately":
 
         # Streamlit callback handler로 bedrock streaming 받아오는 컨테이너 설정
         # st_cb = DummyCallback()
-        st_cb = StreamlitCallbackHandler(
-            st.chat_message("assistant"),
-            collapse_completed_thoughts=True
-        )
+        # st_cb = StreamlitCallbackHandler(
+        #     st.chat_message("assistant"),
+        #     collapse_completed_thoughts=True
+        # )
+        st_cb = None
         parent = False
         reranker = False
         hyde = False
@@ -235,5 +236,5 @@ if st.session_state.showing_option == "Separately":
         #
         # st.session_state.messages.append({"role": "assistant_context", "content": contexts})
         # Thinking을 complete로 수동으로 바꾸어 줌
-        st_cb._complete_current_thought()
+        # st_cb._complete_current_thought()
 
