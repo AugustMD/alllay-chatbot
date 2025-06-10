@@ -36,11 +36,11 @@ def parse_metadata(metadata):
 def show_document_info_label():
     with st.container(border=True):
         if menu == "🤖 Chatbot":
-            st.markdown('''**💁‍♀️ 원하는 도면이 있나요?**''')
+            st.markdown('''**🔍 원하는 도면이 있나요?**''')
             st.markdown(
                 '''&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;👉 스파이럴 슈트가 10개 있는 레이아웃 알려줘. 라고 질문해보세요.''')
             st.markdown("""""")
-            st.markdown('''**💁‍️ 원하는 매뉴얼이 있나요?**''')
+            st.markdown('''**📄 원하는 매뉴얼이 있나요?**''')
             st.markdown(
                 '''&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;👉 현재 기본 문서인 [**쿠팡 물류센터 운영 매뉴얼**](https://d14ojpq4k4igb1.cloudfront.net/school_edu_guide.pdf)를 활용하고 있습니다.''')
             st.session_state.query_disabled = False  # 상태 저장용
