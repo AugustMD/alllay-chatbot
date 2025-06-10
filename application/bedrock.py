@@ -52,19 +52,6 @@ def invoke_agent_direct(query):
         inputText=query
     )
 
-    # 1️⃣ completion (스트리밍 응답)
-    if "completion" in response:
-        output = b""
-        for event in response["completion"]:
-            chunk = event.get("chunk", {}).get("bytes")
-            if chunk:
-                output += chunk
-        return {"message": output.decode("utf-8")}, []
-
-    # 2️⃣ outputText (단일 텍스트 응답)
-    if "outputText" in response:
-        return {"message": response["outputText"]}, []
-
     # 3️⃣ body (Lambda 호출 결과)
     if "body" in response:
         try:
@@ -88,6 +75,19 @@ def invoke_agent_direct(query):
                 return {"error": "Invalid outer body structure"}, []
         except Exception as e:
             return {"error": f"JSON decode failed: {str(e)}"}, []
+
+    # 1️⃣ completion (스트리밍 응답)
+    if "completion" in response:
+        output = b""
+        for event in response["completion"]:
+            chunk = event.get("chunk", {}).get("bytes")
+            if chunk:
+                output += chunk
+        return {"message": output.decode("utf-8")}, []
+
+    # 2️⃣ outputText (단일 텍스트 응답)
+    if "outputText" in response:
+        return {"message": response["outputText"]}, []
 
     # 4️⃣ fallback
     return {"error": "No valid response format found"}, []
