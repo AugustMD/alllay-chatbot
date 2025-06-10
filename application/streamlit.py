@@ -101,8 +101,8 @@ st.set_page_config(layout="wide", page_title="LG CNS 물류센터 챗봇", page_
 st.title(":truck: LG CNS 물류센터 설계 & 운영 챗봇")
 
 st.markdown('''- 이 챗봇은 Amazon Bedrock과 Claude v4 Sonnet 모델로 구현되었습니다.''')
-st.markdown('''- 다음과 같은 Advanced RAG 기술을 사용합니다: **Hybrid Search**''')
-# st.markdown('''- 원본 데이터는 Amazon OpenSearch에 저장되어 있으며, Amazon Titan 임베딩 모델이 사용되었습니다.''')
+st.markdown('''- 다음과 같은 Advanced RAG 기술을 사용합니다: **Hybrid Search, and Parent Document**''')
+st.markdown('''- 원본 데이터는 Amazon OpenSearch에 저장되어 있으며, Amazon Titan 임베딩 모델이 사용되었습니다.''')
 st.markdown("""
 ---
 🚀 *해당 챗봇은 LG CNS 물류센터 현장 경험과 내부 문서를 기반으로 구축 중입니다.*
