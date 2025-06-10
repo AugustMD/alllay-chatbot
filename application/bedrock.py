@@ -70,10 +70,19 @@ def invoke_agent_direct(query):
         try:
             outer = json.loads(response["body"])
             if isinstance(outer, dict) and "body" in outer:
-                inner = json.loads(outer["body"])
+                inner_body = outer.get("body")
+                # 1️⃣ inner_body가 문자열이면 다시 JSON으로 파싱
+                if isinstance(inner_body, str):
+                    inner = json.loads(inner_body)
+                # 2️⃣ 이미 dict일 경우 그대로 사용
+                elif isinstance(inner_body, dict):
+                    inner = inner_body
+                else:
+                    raise ValueError("Unexpected inner body type")
+
                 return {
                     "expected_count": inner.get("expected_count"),
-                    "results": inner.get("results", [])
+                    "results": inner.get("results", []) or inner  # manual.py 대응
                 }, []
             else:
                 return {"error": "Invalid outer body structure"}, []
