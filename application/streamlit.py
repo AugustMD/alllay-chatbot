@@ -35,10 +35,14 @@ def parse_metadata(metadata):
 
 def show_document_info_label():
     with st.container(border=True):
-        if menu == "🔍 설계 도면 레퍼런스 찾기":
+        if menu == "🤖 Chatbot":
             st.markdown('''**💁‍♀️ 원하는 도면이 있나요?**''')
             st.markdown(
-                '''Spiral Chute가 포함된 도면 알려줘. 라고 질문해보세요.''')
+                '''&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;👉 스파이럴이 10개 있는 레이아웃 알려줘. 라고 질문해보세요.''')
+            st.markdown("""""")
+            st.markdown('''**💁‍️ 원하는 매뉴얼이 있나요?**''')
+            st.markdown(
+                '''&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;👉 현재 기본 문서인 [**쿠팡 물류센터 운영 매뉴얼**](https://d14ojpq4k4igb1.cloudfront.net/school_edu_guide.pdf)를 활용하고 있습니다.''')
             st.session_state.query_disabled = False  # 상태 저장용
         elif menu == "📄 운영 매뉴얼 검색":
             st.markdown(
@@ -94,9 +98,9 @@ st.set_page_config(layout="wide", page_title="LG CNS 물류센터 챗봇", page_
 # Header
 st.title(":truck: LG CNS 물류센터 설계 & 운영 챗봇")
 
-st.markdown('''- 이 챗봇은 Amazon Bedrock과 Claude v3 Sonnet 모델로 구현되었습니다.''')
-st.markdown('''- 다음과 같은 Advanced RAG 기술을 사용합니다: **Hybrid Search, ReRanker, and Parent Document, HyDE, Rag Fusion**''')
-st.markdown('''- 원본 데이터는 Amazon OpenSearch에 저장되어 있으며, Amazon Titan 임베딩 모델이 사용되었습니다.''')
+st.markdown('''- 이 챗봇은 Amazon Bedrock과 Claude v4 Sonnet 모델로 구현되었습니다.''')
+st.markdown('''- 다음과 같은 Advanced RAG 기술을 사용합니다: **Hybrid Search**''')
+# st.markdown('''- 원본 데이터는 Amazon OpenSearch에 저장되어 있으며, Amazon Titan 임베딩 모델이 사용되었습니다.''')
 st.markdown("""
 ---
 🚀 *해당 챗봇은 LG CNS 물류센터 현장 경험과 내부 문서를 기반으로 구축 중입니다.*
@@ -105,7 +109,7 @@ st.markdown('''    ''')
 
 # Store the initial value of widgets in session state
 if "document_type" not in st.session_state:
-    st.session_state.document_type = "🔍 설계 도면 레퍼런스 찾기"
+    st.session_state.document_type = "🤖 Chatbot"
 if "showing_option" not in st.session_state:
     st.session_state.showing_option = "Separately"
 if "search_mode" not in st.session_state:
@@ -119,72 +123,78 @@ with st.sidebar:  # Sidebar 모델 옵션
     st.markdown("""
         LG CNS 물류센터 관련 정보를 빠르게 찾을 수 있도록 돕는 AI 챗봇입니다. 아래에서 원하는 기능을 선택하세요.
         """)
+    # menu = st.radio("기능 선택",
+    #         ["🤖 Chatbot", "📄 운영 매뉴얼 검색", "⏏️ 문서 업로드"],
+    #         captions=["챗봇이 원하는 조건의 다양한 레퍼런스를 손쉽고 빠르게 찾아줍니다.", "챗봇이 방대한 운영 매뉴얼 문서에서 원하는 정보를 쉽고 빠르게 찾아줍니다.", "원하시는 문서를 직접 업로드해보세요."],
+    #         key="document_type",
+    # )
     menu = st.radio("기능 선택",
-            ["🔍 설계 도면 레퍼런스 찾기", "📄 운영 매뉴얼 검색", "⏏️ 문서 업로드"],
-            captions=["챗봇이 원하는 조건의 다양한 레퍼런스를 손쉽고 빠르게 찾아줍니다.", "챗봇이 방대한 운영 매뉴얼 문서에서 원하는 정보를 쉽고 빠르게 찾아줍니다.", "원하시는 문서를 직접 업로드해보세요."],
-            key="document_type",
-    )
+                    ["🤖 Chatbot", "⏏️ 문서 업로드"],
+                    captions=["챗봇이 원하는 조건의 다양한 레이아웃과 운영 매뉴얼을 손쉽고 빠르게 찾아줍니다.",
+                              "원하시는 문서를 직접 업로드해보세요."],
+                    key="document_type",
+                    )
     st.markdown("""
         ---
         💡 *PDF, 도면, 매뉴얼 등의 업로드는 추후 버전에서 지원 예정입니다.*
         """)
-    with st.container(border=True):
-        st.radio(
-            "UI option:",
-            ["Separately", "All at once"],
-            captions=["아래에서 설정한 파라미터 조합으로 하나의 검색 결과가 도출됩니다.", "여러 옵션들을 한 화면에서 한꺼번에 볼 수 있습니다."],
-            key="showing_option",
-        )
-    st.markdown('''### Set parameters for your Bot 👇''')
-    with st.container(border=True):
-        search_mode = st.radio(
-            "Search mode:",
-            ["Lexical search", "Semantic search", "Hybrid search"],
-            captions=[
-                "키워드의 일치 여부를 기반으로 답변을 생성합니다.",
-                "키워드의 일치 여부보다는 문맥의 의미적 유사도에 기반해 답변을 생성합니다.",
-                "아래의 Alpha 값을 조정하여 Lexical/Semantic search의 비율을 조정합니다."
-            ],
-            key="search_mode",
-            disabled=disabled
-        )
-        alpha = st.slider('Alpha value for Hybrid search ⬇️', 0.0, 1.0, 0.51,
-                          disabled=st.session_state.search_mode != "Hybrid search",
-                          help="""Alpha=0.0 이면 Lexical search,   \nAlpha=1.0 이면 Semantic search 입니다."""
-                          )
-        if search_mode == "Lexical search":
-            alpha = 0.0
-        elif search_mode == "Semantic search":
-            alpha = 1.0
-
-    col1, col2 = st.columns(2)
-    with col1:
-        reranker = st.toggle("Reranker",
-                             help="""초기 검색 결과를 재평가하여 순위를 재조정하는 모델입니다.   
-                             문맥 정보와 질의 관련성을 고려하여 적합한 결과를 상위에 올립니다.""",
-                             disabled=disabled)
-    with col2:
-        parent = st.toggle("Parent Docs",
-                           help="""답변 생성 모델이 질의에 대한 답변을 생성할 때 참조한 정보의 출처를 표시하는 옵션입니다.""",
-                           disabled=disabled)
-
-    with st.container(border=True):
-        hyde_or_ragfusion = st.radio(
-            "Choose a RAG option:",
-            ["None", "HyDE", "RAG-Fusion"],
-            captions=[
-                "",
-                "문서와 질의 간의 의미적 유사도를 측정하기 위한 임베딩 기법입니다. 하이퍼볼릭 공간에서 거리를 계산하여 유사도를 측정합니다.",
-                "검색과 생성을 결합한 모델로, 검색 모듈이 관련 문서를 찾고 생성 모듈이 이를 참조하여 답변을 생성합니다. 두 모듈의 출력을 융합하여 최종 답변을 도출합니다."
-            ],
-            key="hyde_or_ragfusion",
-            disabled=disabled
-        )
-        hyde = hyde_or_ragfusion == "HyDE"
-        ragfusion = hyde_or_ragfusion == "RAG-Fusion"
+    # with st.container(border=True):
+    #     st.radio(
+    #         "UI option:",
+    #         ["Separately", "All at once"],
+    #         captions=["아래에서 설정한 파라미터 조합으로 하나의 검색 결과가 도출됩니다.", "여러 옵션들을 한 화면에서 한꺼번에 볼 수 있습니다."],
+    #         key="showing_option",
+    #     )
+    # st.markdown('''### Set parameters for your Bot 👇''')
+    # with st.container(border=True):
+    #     search_mode = st.radio(
+    #         "Search mode:",
+    #         ["Lexical search", "Semantic search", "Hybrid search"],
+    #         captions=[
+    #             "키워드의 일치 여부를 기반으로 답변을 생성합니다.",
+    #             "키워드의 일치 여부보다는 문맥의 의미적 유사도에 기반해 답변을 생성합니다.",
+    #             "아래의 Alpha 값을 조정하여 Lexical/Semantic search의 비율을 조정합니다."
+    #         ],
+    #         key="search_mode",
+    #         disabled=disabled
+    #     )
+    #     alpha = st.slider('Alpha value for Hybrid search ⬇️', 0.0, 1.0, 0.51,
+    #                       disabled=st.session_state.search_mode != "Hybrid search",
+    #                       help="""Alpha=0.0 이면 Lexical search,   \nAlpha=1.0 이면 Semantic search 입니다."""
+    #                       )
+    #     if search_mode == "Lexical search":
+    #         alpha = 0.0
+    #     elif search_mode == "Semantic search":
+    #         alpha = 1.0
+    #
+    # col1, col2 = st.columns(2)
+    # with col1:
+    #     reranker = st.toggle("Reranker",
+    #                          help="""초기 검색 결과를 재평가하여 순위를 재조정하는 모델입니다.
+    #                          문맥 정보와 질의 관련성을 고려하여 적합한 결과를 상위에 올립니다.""",
+    #                          disabled=disabled)
+    # with col2:
+    #     parent = st.toggle("Parent Docs",
+    #                        help="""답변 생성 모델이 질의에 대한 답변을 생성할 때 참조한 정보의 출처를 표시하는 옵션입니다.""",
+    #                        disabled=disabled)
+    #
+    # with st.container(border=True):
+    #     hyde_or_ragfusion = st.radio(
+    #         "Choose a RAG option:",
+    #         ["None", "HyDE", "RAG-Fusion"],
+    #         captions=[
+    #             "",
+    #             "문서와 질의 간의 의미적 유사도를 측정하기 위한 임베딩 기법입니다. 하이퍼볼릭 공간에서 거리를 계산하여 유사도를 측정합니다.",
+    #             "검색과 생성을 결합한 모델로, 검색 모듈이 관련 문서를 찾고 생성 모듈이 이를 참조하여 답변을 생성합니다. 두 모듈의 출력을 융합하여 최종 답변을 도출합니다."
+    #         ],
+    #         key="hyde_or_ragfusion",
+    #         disabled=disabled
+    #     )
+    #     hyde = hyde_or_ragfusion == "HyDE"
+    #     ragfusion = hyde_or_ragfusion == "RAG-Fusion"
 
 # Main Interface
-if menu == "🔍 설계 도면 레퍼런스 찾기":
+if menu == "🤖 Chatbot":
     show_document_info_label()
 
 elif menu == "📄 운영 매뉴얼 검색":

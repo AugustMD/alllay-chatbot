@@ -1,4 +1,5 @@
 import os, sys, boto3, json
+from botocore.config import Config
 from utils.rag_summit import prompt_repo, OpenSearchHybridSearchRetriever, prompt_repo, qa_chain
 from utils.opensearch_summit import opensearch_utils
 from utils.ssm import parameter_store
@@ -11,14 +12,22 @@ region = boto3.Session().region_name
 pm = parameter_store(region)
 secrets_manager = boto3.client('secretsmanager', region_name=region)
 
-
 def invoke_agent_direct(query):
     agent_id = os.environ.get("BEDROCK_AGENT_ID", "WZPRJN27KK")
     alias_id = os.environ.get("BEDROCK_AGENT_ALIAS_ID", "QLJDG1RGPT")
     session_id = os.environ.get("SESSION_ID", "default-session")
     region = os.environ.get("AWS_DEFAULT_REGION")
 
-    client = boto3.client("bedrock-agent-runtime", region_name=region)
+    custom_config = Config(
+        connect_timeout=30,
+        read_timeout=300,
+        retries={
+            'max_attempts': 3,
+            'mode': 'standard'
+        }
+    )
+
+    client = boto3.client("bedrock-agent-runtime", region_name=region, config=custom_config)
 
     # 사용자 포맷에 맞게 request_body 생성
     request_body = {
