@@ -85,6 +85,8 @@ def invoke_agent_direct(query):
 
 def invoke(query, streaming_callback=None, parent=None, reranker=None, hyde=None, ragfusion=None, alpha=0.5, document_type="Default"):
     # 사용자 정의 Bedrock Agent만 사용하여 호출
+    response, _ = invoke_agent_direct(query)
+
     # Lambda에서 온 structured response
     if "results" in response:
         return response["results"], []
