@@ -1,7 +1,8 @@
 import base64
 import streamlit as st  # 모든 streamlit 명령은 "st" alias로 사용할 수 있습니다.
-import bedrock as glib  # 로컬 라이브러리 스크립트에 대한 참조
-from langchain.callbacks import StreamlitCallbackHandler
+import bedrock_local as glib  # 로컬 라이브러리 스크립트에 대한 참조
+import time
+# from langchain.callbacks import StreamlitCallbackHandler
 
 ##################### LocalTest ########################
 class DummyCallback:
@@ -38,7 +39,7 @@ def show_document_info_label():
         if menu == "🤖 Chatbot":
             st.markdown('''**🔍 원하는 도면이 있나요?**''')
             st.markdown(
-                '''&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;👉 스파이럴 슈트가 10개 있는 레이아웃 알려줘. 라고 질문해보세요.''')
+                '''&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;👉 스파이럴 슈트 10개 있는 레이아웃 알려줘. 라고 질문해보세요.''')
             st.markdown("""""")
             st.markdown('''**📖 원하는 매뉴얼이 있나요?**''')
             st.markdown(
@@ -98,7 +99,8 @@ def show_answer_with_multi_columns(answers):
 ####################### Application ###############################
 st.set_page_config(layout="wide", page_title="LG CNS 물류센터 챗봇", page_icon="📦")
 # Header
-st.title(":truck: LG CNS 물류센터 설계 & 운영 챗봇")
+st.title(":truck:")
+st.title("LG CNS 물류센터 설계 & 운영 챗봇")
 
 st.markdown('''- 이 챗봇은 Amazon Bedrock과 Claude v4 Sonnet 모델로 구현되었습니다.''')
 st.markdown('''- 다음과 같은 Advanced RAG 기술을 사용합니다: **Hybrid Search, and Parent Document**''')
@@ -214,22 +216,7 @@ if st.session_state.showing_option == "Separately":
         ]
     # 지난 답변 출력
     for msg in st.session_state.messages:
-        # 지난 답변에 대한 컨텍스트 출력
-        if msg["role"] == "assistant_context":
-            with st.chat_message("assistant"):
-                with st.expander("Context 확인하기 ⬇️"):
-                    show_context_with_tab(contexts=msg["content"])
-
-        elif msg["role"] == "hyde_or_fusion":
-            with st.chat_message("assistant"):
-                with st.expander("중간 답변 확인하기 ⬇️"):
-                    msg["content"]
-
-        elif msg["role"] == "assistant_column":
-            # 'Separately' 옵션일 경우 multi column 으로 보여주지 않고 첫 번째 답변만 출력
-            st.chat_message(msg["role"]).write(msg["content"][0])
-        else:
-            st.chat_message(msg["role"]).write(msg["content"])
+        st.chat_message(msg["role"]).write(msg["content"])
 
     # 유저가 쓴 chat을 query라는 변수에 담음
     if "query_disabled" not in st.session_state or not st.session_state.query_disabled:
@@ -245,11 +232,11 @@ if st.session_state.showing_option == "Separately":
         st.chat_message("user").write(query)
 
         # Streamlit callback handler로 bedrock streaming 받아오는 컨테이너 설정
-        # st_cb = DummyCallback()
-        st_cb = StreamlitCallbackHandler(
-            st.chat_message("assistant"),
-            collapse_completed_thoughts=True
-        )
+        st_cb = DummyCallback()
+        # st_cb = StreamlitCallbackHandler(
+        #     st.chat_message("assistant"),
+        #     collapse_completed_thoughts=True
+        # )
         parent = False
         reranker = False
         hyde = False
@@ -270,7 +257,17 @@ if st.session_state.showing_option == "Separately":
         #     mid_answer = response[2] if len(response) > 2 else None
 
         # UI 출력
-        st.chat_message("assistant").write(answer)
+        with st.chat_message("assistant"):
+            message_placeholder = st.empty()
+            full_response = ""
+            for chunk in answer.split():
+                full_response += chunk + " "
+                time.sleep(0.05)
+                # Add a blinking cursor to simulate typing
+                message_placeholder.markdown(full_response + "▌")
+            message_placeholder.markdown(full_response)
+
+        # st.chat_message("assistant").write(full_response)
 
         # if hyde:
         #     with st.chat_message("assistant"):
@@ -285,7 +282,7 @@ if st.session_state.showing_option == "Separately":
         #         show_context_with_tab(contexts)
 
         # Session 메세지 저장
-        st.session_state.messages.append({"role": "assistant", "content": answer})
+        st.session_state.messages.append({"role": "assistant", "content": full_response})
 
         # if hyde or ragfusion:
         #     st.session_state.messages.append({"role": "hyde_or_fusion", "content": mid_answer})
@@ -293,126 +290,4 @@ if st.session_state.showing_option == "Separately":
         # st.session_state.messages.append({"role": "assistant_context", "content": contexts})
         # Thinking을 complete로 수동으로 바꾸어 줌
         st_cb._complete_current_thought()
-
-###### 2) 'All at once' 옵션 선택한 경우 ######
-else:
-    if "messages" not in st.session_state:
-        st.session_state["messages"] = [
-            {"role": "assistant", "content": "안녕하세요, 무엇이 궁금하세요?"}
-        ]
-    # 지난 답변 출력
-    for msg in st.session_state.messages:
-        if msg["role"] == "assistant_column":
-            answers = msg["content"]
-            show_answer_with_multi_columns(answers)
-        elif msg["role"] == "assistant_context":
-            pass  # 'All at once' 옵션 선택 시에는 context 로그를 출력하지 않음
-        else:
-            st.chat_message(msg["role"]).write(msg["content"])
-
-    # 유저가 쓴 chat을 query라는 변수에 담음
-    if "query_disabled" not in st.session_state or not st.session_state.query_disabled:
-        query = st.chat_input("Search documentation")
-    else:
-        query = None
-    if query:
-        # Session에 메세지 저장
-        st.session_state.messages.append({"role": "user", "content": query})
-
-        # UI에 출력
-        st.chat_message("user").write(query)
-
-        col1, col2, col3, col4 = st.columns(4)
-        with col1:
-            st.markdown('''### `Lexical search` ''')
-            st.markdown(":green[: Alpha 값이 0.0]으로, 키워드의 정확한 일치 여부를 판단하는 Lexical search 결과입니다.")
-        with col2:
-            st.markdown('''### `Semantic search` ''')
-            st.markdown(":green[: Alpha 값이 1.0]으로, 키워드 일치 여부보다는 문맥의 의미적 유사도에 기반한 Semantic search 결과입니다.")
-        with col3:
-            st.markdown('''### + `Reranker` ''')
-            st.markdown(""": 초기 검색 결과를 재평가하여 순위를 재조정하는 모델입니다. 문맥 정보와 질의 관련성을 고려하여 적합한 결과를 상위에 올립니다.
-                        :green[Alpha 값은 왼쪽 사이드바에서 설정하신 값]으로 적용됩니다.""")
-        with col4:
-            st.markdown('''### + `Parent Docs` ''')
-            st.markdown(""": 질의에 대한 답변을 생성할 때 참조하는 문서 집합입니다. 답변 생성 모델이 참조할 수 있는 관련 정보의 출처가 됩니다.
-                        :green[Alpha 값은 왼쪽 사이드바에서 설정하신 값]으로 적용됩니다.""")
-
-        with col1:
-            # Streamlit callback handler로 bedrock streaming 받아오는 컨테이너 설정
-            # st_cb = DummyCallback()
-            st_cb = StreamlitCallbackHandler(
-                st.chat_message("assistant"),
-                collapse_completed_thoughts=True
-            )
-            answer1 = glib.invoke(
-                query=query,
-                streaming_callback=st_cb,
-                parent=False,
-                reranker=False,
-                hyde=False,
-                ragfusion=False,
-                alpha=0,  # Lexical search
-                document_type=st.session_state.document_type
-            )[0]
-            st.write(answer1)
-            st_cb._complete_current_thought()  # Thinking을 complete로 수동으로 바꾸어 줌
-        with col2:
-            # st_cb = DummyCallback()
-            st_cb = StreamlitCallbackHandler(
-                st.chat_message("assistant"),
-                collapse_completed_thoughts=True
-            )
-            answer2 = glib.invoke(
-                query=query,
-                streaming_callback=st_cb,
-                parent=False,
-                reranker=False,
-                hyde=False,
-                ragfusion=False,
-                alpha=1.0,  # Semantic search
-                document_type=st.session_state.document_type
-            )[0]
-            st.write(answer2)
-            st_cb._complete_current_thought()
-        with col3:
-            # st_cb = DummyCallback()
-            st_cb = StreamlitCallbackHandler(
-                st.chat_message("assistant"),
-                collapse_completed_thoughts=True
-            )
-            answer3 = glib.invoke(
-                query=query,
-                streaming_callback=st_cb,
-                parent=False,
-                reranker=True,  # Add Reranker option
-                hyde=False,
-                ragfusion=False,
-                alpha=alpha,  # Hybrid search
-                document_type=st.session_state.document_type
-            )[0]
-            st.write(answer3)
-            st_cb._complete_current_thought()
-        with col4:
-            # st_cb = DummyCallback()
-            st_cb = StreamlitCallbackHandler(
-                st.chat_message("assistant"),
-                collapse_completed_thoughts=True
-            )
-            answer4 = glib.invoke(
-                query=query,
-                streaming_callback=st_cb,
-                parent=True,  # Add Parent_docs option
-                reranker=True,  # Add Reranker option
-                hyde=False,
-                ragfusion=False,
-                alpha=alpha,  # Hybrid search
-                document_type=st.session_state.document_type
-            )[0]
-            st.write(answer4)
-            st_cb._complete_current_thought()
-
-        # Session 메세지 저장
-        answers = [answer1, answer2, answer3, answer4]
-        st.session_state.messages.append({"role": "assistant_column", "content": answers})
 
