@@ -54,7 +54,28 @@ def invoke_agent_direct(query):
 
     # 1️⃣ completion (스트리밍 응답)
     if "completion" in response:
-        return {"message": response["completion"]}, []
+        output = b""
+        error_message = None
+
+        for event in response["completion"]:
+            if event.event_type == "chunk":
+                output += event.payload
+
+            elif event.event_type == "internalError":
+                error_message = event.payload.decode("utf-8")
+                break  # 오류 발생 시 즉시 종료
+
+            # 선택적 처리
+            elif event.event_type == "trace":
+                trace = event.payload.decode("utf-8")
+                print("🔍 Trace:", trace)
+
+        # 오류가 있었다면 에러 리턴
+        if error_message:
+            return {"error": error_message}, []
+
+        # 정상 응답 반환
+        return {"message": output.decode("utf-8")}, []
 
     # 2️⃣ outputText (단일 텍스트 응답)
     if "outputText" in response:
@@ -62,10 +83,21 @@ def invoke_agent_direct(query):
 
     # 3️⃣ body (Lambda 호출 결과)
     if "body" in response:
-        return {"message": response["body"]}, []
+        try:
+            outer = json.loads(response["body"])
+            if isinstance(outer, dict) and "body" in outer:
+                inner = json.loads(outer["body"])
+                return {
+                    "expected_count": inner.get("expected_count"),
+                    "results": inner.get("results", [])
+                }, []
+            else:
+                return {"error": "Invalid outer body structure"}, []
+        except Exception as e:
+            return {"error": f"JSON decode failed: {str(e)}"}, []
 
     # 4️⃣ fallback
-    return {"error": response}, []
+    return {"error": "No valid response format found"}, []
 
 def invoke(query, streaming_callback=None, parent=None, reranker=None, hyde=None, ragfusion=None, alpha=0.5, document_type="Default"):
     # 사용자 정의 Bedrock Agent만 사용하여 호출
