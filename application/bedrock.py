@@ -52,7 +52,7 @@ def invoke_agent_direct(query):
         inputText=query
     )
 
-    # Check if streaming response is returned
+    # 1️⃣ Stream 응답 처리
     if "completion" in response:
         output = b""
         for event in response["completion"]:
@@ -60,8 +60,20 @@ def invoke_agent_direct(query):
             if chunk:
                 output += chunk
         return output.decode("utf-8"), []
-    else:
-        return response.get("outputText", ""), []
+
+    # 2️⃣ 일반 응답 (outputText 또는 body) 처리
+    elif "outputText" in response:
+        return response["outputText"], []
+
+    elif "body" in response:
+        try:
+            body_dict = json.loads(response["body"])  # JSON 문자열 디코딩
+            return json.dumps(body_dict, ensure_ascii=False, indent=2), []
+        except Exception as e:
+            return response["body"], []
+
+    # 3️⃣ 응답이 없을 경우
+    return "[ERROR] No valid response from agent", []
 
 def invoke(query, streaming_callback=None, parent=None, reranker=None, hyde=None, ragfusion=None, alpha=0.5, document_type="Default"):
     # 사용자 정의 Bedrock Agent만 사용하여 호출
