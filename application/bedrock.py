@@ -52,6 +52,10 @@ def invoke_agent_direct(query):
         inputText=query
     )
 
+    def extract_response_text(raw_text):
+        match = re.search(r"<response>(.*?)</response>", raw_text, re.DOTALL)
+        return match.group(1).strip() if match else raw_text.strip()
+
     # 1️⃣ completion (스트리밍 응답)
     if "completion" in response:
         output = b""
@@ -59,11 +63,13 @@ def invoke_agent_direct(query):
             chunk = event.get("chunk", {}).get("bytes")
             if chunk:
                 output += chunk
-        return {"message": output.decode("utf-8")}, []
+        raw_text = output.decode("utf-8")
+        return {"message": extract_response_text(raw_text)}, []
 
     # 2️⃣ outputText (단일 텍스트 응답)
     if "outputText" in response:
-        return {"message": response["outputText"]}, []
+        raw_text = response["outputText"]
+        return {"message": extract_response_text(raw_text)}, []
 
     # 3️⃣ body (Lambda 호출 결과)
     if "body" in response:

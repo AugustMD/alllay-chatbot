@@ -234,10 +234,11 @@ if st.session_state.showing_option == "Separately":
 
         # Streamlit callback handler로 bedrock streaming 받아오는 컨테이너 설정
         # st_cb = DummyCallback()
-        st_cb = StreamlitCallbackHandler(
-            st.chat_message("assistant"),
-            collapse_completed_thoughts=True
-        )
+        # st_cb = StreamlitCallbackHandler(
+        #     st.chat_message("assistant"),
+        #     collapse_completed_thoughts=True
+        # )
+        st_cb = None
         parent = False
         reranker = False
         hyde = False
@@ -261,14 +262,13 @@ if st.session_state.showing_option == "Separately":
         with st.chat_message("assistant"):
             message_placeholder = st.empty()
             full_response = ""
-            for chunk in answer.split():
-                full_response += chunk + " "
-                time.sleep(0.05)
-                # Add a blinking cursor to simulate typing
+            for char in answer:
+                full_response += char
+                time.sleep(0.02)
                 message_placeholder.markdown(full_response + "▌")
             message_placeholder.markdown(full_response)
 
-        # st.chat_message("assistant").write(full_response)
+        # st.chat_message("assistant").write(answer)
 
         # if hyde:
         #     with st.chat_message("assistant"):
@@ -283,12 +283,12 @@ if st.session_state.showing_option == "Separately":
         #         show_context_with_tab(contexts)
 
         # Session 메세지 저장
-        st.session_state.messages.append({"role": "assistant", "content": full_response})
+        st.session_state.messages.append({"role": "assistant", "content": answer})
 
         # if hyde or ragfusion:
         #     st.session_state.messages.append({"role": "hyde_or_fusion", "content": mid_answer})
         #
         # st.session_state.messages.append({"role": "assistant_context", "content": contexts})
         # Thinking을 complete로 수동으로 바꾸어 줌
-        st_cb._complete_current_thought()
+        # st_cb._complete_current_thought()
 
