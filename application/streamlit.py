@@ -40,7 +40,7 @@ def show_document_info_label():
             st.markdown(
                 '''&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;👉 스파이럴 슈트가 10개 있는 레이아웃 알려줘. 라고 질문해보세요.''')
             st.markdown("""""")
-            st.markdown('''**📄 원하는 매뉴얼이 있나요?**''')
+            st.markdown('''**📖 원하는 매뉴얼이 있나요?**''')
             st.markdown(
                 '''&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;👉 터치스크린의 조작법에 대해 알려줘. 라고 질문해보세요.''')
             st.markdown(
