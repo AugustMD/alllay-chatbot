@@ -1,3 +1,4 @@
+import os
 import base64
 import streamlit as st  # 모든 streamlit 명령은 "st" alias로 사용할 수 있습니다.
 import bedrock as glib  # 로컬 라이브러리 스크립트에 대한 참조
@@ -123,15 +124,11 @@ if "hyde_or_ragfusion" not in st.session_state:
 disabled = st.session_state.showing_option == "All at once"
 
 with st.sidebar:  # Sidebar 모델 옵션
-    st.title("📦 물류센터 챗봇")
+    st.title("📦 :rainbow[AllLay]")
     st.markdown("""
-        LG CNS 물류센터 관련 정보를 빠르게 찾을 수 있도록 돕는 AI 챗봇입니다. 아래에서 원하는 기능을 선택하세요.
+        AllLay는 LG CNS 물류센터 관련 정보를 빠르게 찾을 수 있도록 돕는 AI 챗봇입니다. 아래에서 원하는 기능을 선택하세요.
         """)
-    # menu = st.radio("기능 선택",
-    #         ["🤖 Chatbot", "📄 운영 매뉴얼 검색", "⏏️ 문서 업로드"],
-    #         captions=["챗봇이 원하는 조건의 다양한 레퍼런스를 손쉽고 빠르게 찾아줍니다.", "챗봇이 방대한 운영 매뉴얼 문서에서 원하는 정보를 쉽고 빠르게 찾아줍니다.", "원하시는 문서를 직접 업로드해보세요."],
-    #         key="document_type",
-    # )
+
     menu = st.radio("기능 선택",
                     ["🤖 Chatbot", "⏏️ 문서 업로드"],
                     captions=["챗봇이 원하는 조건의 다양한 레이아웃과 운영 매뉴얼을 손쉽고 빠르게 찾아줍니다.",
@@ -178,35 +175,52 @@ if st.session_state.showing_option == "Separately":
         with st.chat_message("user"):
             st.markdown(query)
 
-        # Streamlit callback handler로 bedrock streaming 받아오는 컨테이너 설정
-        # st_cb = DummyCallback()
-        # st_cb = StreamlitCallbackHandler(
-        #     st.chat_message("assistant"),
-        #     collapse_completed_thoughts=True
-        # )
-        st_cb = None
-        parent = False
-        reranker = False
-        hyde = False
-        ragfusion = False
-        # bedrock.py의 invoke 함수 사용
-        answer, contexts = glib.invoke(
-            query=query,
-            streaming_callback=st_cb,
-            parent=parent,
-            reranker=reranker,
-            hyde=hyde,
-            ragfusion=ragfusion,
-            alpha=False,
-            document_type=st.session_state.document_type
-        )
+        # 현재 실행 중인 파이썬 파일의 디렉터리 기준 경로 생성
+        base_dir = os.path.dirname(os.path.abspath(__file__))
+        img_path = os.path.join(base_dir, "img", "loading.gif")
 
-        # if hyde or ragfusion:
-        #     mid_answer = response[2] if len(response) > 2 else None
+        # HTML img 태그로 표시 (width 조정 가능)
+        with open(img_path, "rb") as f:
+            data = f.read()
 
-        # UI 출력
+            data_url = "data:image/gif;base64," + base64.b64encode(data).decode()
+
+        # 먼저 assistant 창 열고 "Running..." 출력
         with st.chat_message("assistant"):
             message_placeholder = st.empty()
+            # message_placeholder.markdown("⏳ Running...")  # 초기 상태 표시
+            message_placeholder.markdown(
+                f"""
+                    <div style='
+                        width: 100px; height: 50px;
+                        overflow: hidden;
+                        display: flex; justify-content: center; align-items: center;
+                    '>
+                        <img src="{data_url}" style="margin-left: -20px; margin-top: -10px; width: 90px;">
+                    </div>
+                    """,
+                unsafe_allow_html=True
+            )
+
+            # 이후 실제 호출 수행
+            st_cb = None
+            parent = False
+            reranker = False
+            hyde = False
+            ragfusion = False
+
+            answer, contexts = glib.invoke(
+                query=query,
+                streaming_callback=st_cb,
+                parent=parent,
+                reranker=reranker,
+                hyde=hyde,
+                ragfusion=ragfusion,
+                alpha=False,
+                document_type=st.session_state.document_type
+            )
+
+            # 실제 응답을 애니메이션 출력
             full_response = ""
             for char in answer:
                 full_response += char
@@ -214,27 +228,7 @@ if st.session_state.showing_option == "Separately":
                 message_placeholder.markdown(full_response + "▌")
             message_placeholder.markdown(full_response)
 
-        # st.chat_message("assistant").write(answer)
-
-        # if hyde:
-        #     with st.chat_message("assistant"):
-        #         with st.expander("HyDE 중간 생성 답변 ⬇️"):
-        #             mid_answer
-        # if ragfusion:
-        #     with st.chat_message("assistant"):
-        #         with st.expander("RAG-Fusion 중간 생성 쿼리 ⬇️"):
-        #             mid_answer
-        # with st.chat_message("assistant"):
-        #     with st.expander("정확도 별 컨텍스트 보기 ⬇️"):
-        #         show_context_with_tab(contexts)
-
         # Session 메세지 저장
         st.session_state.messages.append({"role": "assistant", "content": full_response})
 
-        # if hyde or ragfusion:
-        #     st.session_state.messages.append({"role": "hyde_or_fusion", "content": mid_answer})
-        #
-        # st.session_state.messages.append({"role": "assistant_context", "content": contexts})
-        # Thinking을 complete로 수동으로 바꾸어 줌
-        # st_cb._complete_current_thought()
 
